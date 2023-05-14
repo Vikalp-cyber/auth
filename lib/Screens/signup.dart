@@ -27,7 +27,7 @@ class _SignUpState extends State<SignUp> {
   Future<dynamic> registerUser(Map<String, dynamic>? data) async {
     try {
       final response = await http.post(
-        Uri.parse('https://app-server.3mg.co.in/register/'),
+        Uri.parse('http://129.154.238.127/api/register/'),
         body: data,
       );
       return json.decode(response.body);
@@ -47,28 +47,30 @@ class _SignUpState extends State<SignUp> {
         'phone_number': _phone_numberController.text
       });
 
-      if (response == null) {
+      if (response != null &&
+          response['Status'] == 200 &&
+          response['response'] == 'data saved successfully') {
         // Registration failed, display error message
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('token', response['token']);
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (context) => const MyhomePage(),
+        ));
+      } else if (response == null) {
+        // Registration successful, save auth token to shared preferences
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Registration failed'),
             backgroundColor: Colors.red,
           ),
         );
-      } else if (response['success']) {
-        // Registration successful, save auth token to shared preferences
-        final prefs = await SharedPreferences.getInstance();
-        prefs.setString('auth_token', response['auth_token']);
 
         // Navigate to home screen
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (context) => const MyhomePage(),
-        ));
       } else {
         // Registration failed, display error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response['message']),
+            content: Text('An error occurred'),
             backgroundColor: Colors.red,
           ),
         );

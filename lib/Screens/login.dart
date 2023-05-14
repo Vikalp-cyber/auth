@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:auth/Screens/home.dart';
+import 'package:auth/Screens/signup.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -25,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
       _formKey.currentState!.save();
 
       // Send login request to API
-      final url = Uri.parse('http://127.0.0.1:8000/login/');
+      final url = Uri.parse('http://129.154.238.127/api/login/');
       final response = await http.post(
         url,
         body: {
@@ -36,10 +37,10 @@ class _LoginPageState extends State<LoginPage> {
 
       // Handle response
       final responseData = json.decode(response.body);
-      if (responseData['success']) {
+      if (responseData != null &&
+          responseData['Status'] == 200 &&
+          responseData['Response'] == 'User logged in successfully') {
         // Login successful, save auth token to shared preferences
-        final prefs = await SharedPreferences.getInstance();
-        prefs.setString('auth_token', responseData['auth_token']);
 
         // Navigate to home screen
         // ignore: use_build_context_synchronously
@@ -51,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
         // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(responseData['message']),
+            content: Text("An error Occured"),
             backgroundColor: Colors.red,
           ),
         );
@@ -67,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _checkAuthStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    final authToken = prefs.getString('auth_token');
+    final authToken = prefs.getString('token');
     if (authToken != null) {
       // User is already authenticated, navigate to home screen
       Navigator.of(context).pushReplacement(
@@ -236,7 +237,13 @@ class _LoginPageState extends State<LoginPage> {
                         Container(
                           margin: EdgeInsets.only(right: 90, top: 10),
                           child: TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => SignUp(),
+                                ),
+                              );
+                            },
                             child: const Text(
                               "Sign Up",
                               style: TextStyle(color: Colors.black),
